@@ -1,0 +1,36 @@
+server_url: http://192.168.1.50:8080 # Target deployment block for HTTPS termination in a later commit
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 127.0.0.1:9090
+
+# Carrier-Grade NAT (CGNAT) overlay private network space
+ip_prefixes:
+  - 100.64.0.0/10
+
+derp:
+  server:
+    # NOTE: Maintained at false because embedded relay engines mandate valid TLS.
+    # When disabled, Headscale uses global public STUN infrastructure loops to orchestrate 
+    # peer-to-peer NAT traversal. If nodes encounter complete path blocks behind strict 
+    # enterprise networks later, an external reverse proxy must be deployed to safely flip this to true.
+    enabled: false 
+    region_id: 999
+    region_code: "sovereign-derp"
+    region_name: "Sovereign Internal Relay"
+    stun_listen_addr: "0.0.0.0:3478"
+
+# NOTE: These internal paths are isolated strictly to the internal container ecosystem layout.
+# The container maps these coordinates back to the host machine workspace paths via the volume bounds 
+# declared inside your docker-compose config (~/sovereign/headscale/data -> /var/lib/headscale)
+db_type: sqlite3
+db_path: /var/lib/headscale/db.sqlite
+
+dns:
+  magic_dns: true
+  base_domain: sovereign.mesh
+
+noise:
+  private_key_path: /var/lib/headscale/noise_private.key
+
+
+
+

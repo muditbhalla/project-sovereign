@@ -1,0 +1,107 @@
+# PROJECT SOVEREIGN - MASTER ARCHITECTURE
+# Host Environment: Bare-Metal Ubuntu Server 26.04 LTS (MacBook Pro 2012 Legacy Edge)
+services:
+
+  # ==========================================
+  # TIER 1: SECURE NETWORKING (CONTROL PLANE)
+  # ==========================================
+  headscale:
+    image: headscale/headscale:latest
+    container_name: sovereign-headscale
+    volumes:
+      - ~/sovereign/headscale/config:/etc/headscale
+      - ~/sovereign/headscale/data:/var/lib/headscale
+    ports:
+      - "8080:8080"
+    command: headscale serve
+    restart: unless-stopped
+
+  # ==========================================
+  # ️TIER 2: DATA SOVEREIGNTY (SEAFILE STORAGE)
+  # ==========================================
+  seafile-db:
+    image: postgres:15
+    container_name: sovereign-seafile-db
+    environment:
+      - POSTGRES_USER=seafile
+      - POSTGRES_PASSWORD=sovereign_db_secure  
+      - POSTGRES_DB=seafile_db
+    volumes:
+      - ~/sovereign/seafile/db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  seafile-memcached:
+    image: memcached:1.6
+    container_name: sovereign-memcached
+    entrypoint: memcached -m 256
+    restart: unless-stopped
+
+  seafile-app:
+    image: seafileltd/seafile-mc:latest
+    container_name: sovereign-seafile-app
+    ports:
+      - "8000:80"
+    volumes:
+      - ~/sovereign/seafile/data:/shared
+    environment:
+      - DB_HOST=seafile-db
+      - DB_USER=seafile
+      - DB_ROOT_PASSWD=sovereign_db_secure
+      - TIME_ZONE=Asia/Kolkata
+      - SEAFILE_ADMIN_EMAIL=mudit@test_1.com
+      - SEAFILE_ADMIN_PASSWORD=admin_initial_pass  
+      - SEAFILE_SERVER_HOSTNAME=100.64.0.2 
+    depends_on:
+      - seafile-db
+      - seafile-memcached
+    restart: unless-stopped
+
+  # ==========================================
+  # TIER 3: EDGE VISION AI (IMMICH ENGINE)
+  # ==========================================
+  immich-db:
+    image: tensorchord/pgvecto-rs:pg14-v0.2.0  
+    container_name: sovereign-immich-db
+    environment:
+      POSTGRES_PASSWORD: immich_db_secure
+      POSTGRES_USER: immich
+      POSTGRES_DB: immich
+    volumes:
+      - ~/sovereign/immich/db:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  immich-redis:
+    image: redis:6.2-alpine
+    container_name: sovereign-immich-redis
+    restart: unless-stopped
+
+  immich-server:
+    image: ghcr.io/immich-app/immich-server:release
+    container_name: sovereign-immich-server
+    ports:
+      - "2283:3001"
+    volumes:
+      - ~/sovereign/immich/library:/usr/src/app/upload
+      - /etc/localtime:/etc/localtime:ro
+    environment:
+      - DB_HOSTNAME=immich-db
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich_db_secure
+      - DB_DATABASE_NAME=immich
+      - REDIS_HOSTNAME=immich-redis
+    depends_on:
+      - immich-db
+      - immich-redis
+    restart: unless-stopped
+
+  immich-machine-learning:
+    image: ghcr.io/immich-app/immich-machine-learning:release
+    container_name: sovereign-immich-ml
+    volumes:
+      - ~/sovereign/immich/model-cache:/cache
+    environment:
+      - DB_HOSTNAME=immich-db
+      - DB_USERNAME=immich
+      - DB_PASSWORD=immich_db_secure
+      - DB_DATABASE_NAME=immich
+    restart: unless-stopped

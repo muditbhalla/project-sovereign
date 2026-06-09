@@ -1,0 +1,48 @@
+# ==============================================================================
+# PROJECT SOVEREIGN - CRYPTOGRAPHIC DEFENSE BOUNDARY
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# 1. ULTIMATE CRYPTOGRAPHIC PROTECTION (Global Wildcards)
+# ------------------------------------------------------------------------------
+# Blocks ALL asymmetric keys, WireGuard profiles, and certificates anywhere in the repo
+**/*.key
+**/*.pem
+**/*.crt
+**/*.csr
+**/*.p12
+**/*.pub
+**/id_rsa*
+
+# Specific Headscale host identities (Double-layer protection)
+config/headscale/private_key.pem
+config/headscale/noise_private_key.pem
+
+# ------------------------------------------------------------------------------
+# 2. LOCAL DATABASES & RUNTIME STATE (Personal Data Isolation)
+# ------------------------------------------------------------------------------
+# Prevents node data, user routing tables, and device history from leaking
+config/headscale/db.sqlite
+config/headscale/db.sqlite-journal
+data/
+sovereign/
+~/sovereign/
+
+# ------------------------------------------------------------------------------
+# 3. ENVIRONMENT VARIABLES & SECRETS (Credential Protection)
+# ------------------------------------------------------------------------------
+# Blocks plain-text passwords, API tokens, and local config overrides
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------------------------
+# 4. SYSTEM LOGS & NOISY ARTIFACTS
+# ------------------------------------------------------------------------------
+# Prevents operational metadata and IP addresses from leaking via logs
+*.log
+logs/
+**/logs/
+
+
+
