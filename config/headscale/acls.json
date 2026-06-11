@@ -1,0 +1,9 @@
+{
+  "ACLs": [
+    {
+      "Action": "accept",
+      "Users": ["*"],
+      "Ports": ["*:*"]
+    }
+  ]
+}
