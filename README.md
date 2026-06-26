@@ -34,3 +34,6 @@ project-sovereign/
 │       └── acls.json                # Hardware access firewall policies
 └── documentation/
     └── troubleshooting.md          # 12-Incident Diagnostic Ledger & Runbooks
+
+
+Have questions or ideas? Join the [Discussions](https://github.com/muditbhalla/project-sovereign/discussions)!
